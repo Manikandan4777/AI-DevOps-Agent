@@ -5,33 +5,30 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                echo 'Checking out source code...'
                 checkout scm
             }
         }
 
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Building AI DevOps Agent'
+                sh 'docker build -t ai-devops-agent .'
             }
         }
 
-        stage('Python Check') {
+        stage('Stop Old Container') {
             steps {
-                sh 'python3 --version'
+                sh 'docker rm -f ai-devops-agent-container || true'
             }
         }
 
-        stage('Docker Check') {
+        stage('Deploy Container') {
             steps {
-                sh 'docker --version'
-            }
-        }
-
-        stage('List Files') {
-            steps {
-                sh 'pwd'
-                sh 'ls -la'
+                sh '''
+                docker run -d \
+                --name ai-devops-agent-container \
+                -p 5001:5000 \
+                ai-devops-agent
+                '''
             }
         }
     }
